@@ -12,7 +12,7 @@
 
 The purpose of this lab is to install a complete IBM Cloud Private cluster running on multiple nodes.
 
-> **Prerequisites** : you should have defined 3 (virtual) machines (RHEL version 7.6) and collected IP addresses and root passwords for these 3 machines.
+> **Prerequisites** : you should have defined 4 (virtual) machines (RHEL version 7.6) and collected IP addresses and root passwords for these 4 machines.
 
 
 
