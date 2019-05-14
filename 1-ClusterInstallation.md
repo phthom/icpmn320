@@ -23,8 +23,8 @@ The purpose of this lab is to install a complete IBM Cloud Private cluster runni
 
 Before you start installing IBM Cloud Private, you must provision a set of four machines using your favorite vitualization tools or your prefered cloud infrastructure :
 - One master node (including boot node, management node, va node, proxy node) : 8 vcores, 32 GB (RAM), 300 GB (Storage), one IP
-- Two worker nodes:  8  vcores, 16 GB (RAM), 100 GB (Storage), one IP per worker
-- One VM for NFS with NFS configured.
+- Three worker nodes:  8  vcores, 16 GB (RAM), 100 GB (Storage), one IP per worker
+- One VM for NFS with NFS configured - or install the NFS server in the Master node
 - All nodes are running RHEL version 7.6
 - ICP Enterprise Edition - version 3.1.2
 
