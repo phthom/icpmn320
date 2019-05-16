@@ -450,7 +450,7 @@ Basic Commands (Intermediate) ...
  The cloudctl CLI command should have been installed. **Execute** the following command **cloudctl**:
 
 ```console
-cloudctl
+# cloudctl
 NAME:
    cloudctl - A command line tool to interact with IBM Cloud Private
 

@@ -25,7 +25,7 @@ Now that you have understood the structure of a kubernetes manifest file, you ca
 
 ### 1. Check Helm
 
-`helm version —tls`
+`helm version --tls`
 
 Results:
 

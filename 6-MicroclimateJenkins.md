@@ -74,36 +74,49 @@ Results:
 namespace/microclimate created
 ```
 
-Login with Cloudctl (replace the ipaddress with the one for the cluster):
 
-`cloudctl login -a https://<masterip>:8443 -n microclimate --skip-ssl-validation`
+
+Login to the ICP registry:
+
+`docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS`
 
 Results:
 
 ```
-# cloudctl login -a https://159.8.182.80:8443 -n microclimate --skip-ssl-validation
+# docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+Login Succeeded
+```
 
-Username> admin
 
-Password> 
+
+Login with cloudctl to the cluster:
+
+``` 
+cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n microclimate
+```
+
+
+
+Results:
+
+```
+# cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n microclimate
 Authenticating...
 OK
 
-Select an account:
-1. mycluster Account (id-mycluster-account)
-Enter a number> 1
-Targeted account mycluster Account (id-mycluster-account)
+Targeted account niceev Account (id-niceev-account)
 
 Targeted namespace microclimate
 
 Configuring kubectl ...
-Property "clusters.mycluster" unset.
-Property "users.mycluster-user" unset.
-Property "contexts.mycluster-context" unset.
-Cluster "mycluster" set.
-User "mycluster-user" set.
-Context "mycluster-context" created.
-Switched to context "mycluster-context".
+Property "clusters.niceev" unset.
+Property "users.niceev-user" unset.
+Property "contexts.niceev-context" unset.
+Cluster "niceev" set.
+User "niceev-user" set.
+Context "niceev-context" created.
+Switched to context "niceev-context".
 OK
 
 Configuring helm: /root/.helm
@@ -129,8 +142,6 @@ Microclimate pipelines pull images from repositories other than `docker.io/ibmco
 
 A new cluster image policy can be created with the necessary image repositories by the following command:
 
-**Change mycluster.icp with your own cluster name** if necessary in the example below.
-
 Then execute that command
 
 ```
@@ -141,7 +152,7 @@ metadata:
   name: microclimate-cluster-image-policy
 spec:
   repositories:
-  - name: mycluster.icp:8500/*
+  - name: $CLUSTERNAME.icp:8500/*
   - name: docker.io/maven:*
   - name: docker.io/jenkins/*
   - name: docker.io/docker:*
@@ -156,11 +167,11 @@ clusterimagepolicy.securityenforcement.admission.cloud.ibm.com/microclimate-clus
 
 ### Create a Docker registry secret for Microclimate
 
-Change **mycluster.icp with your own cluster name** if necessary in the example below.
+Use the following command:
 
 ```
 kubectl create secret docker-registry microclimate-registry-secret \
-  --docker-server=mycluster.icp:8500 \
+  --docker-server=$CLUSTERNAME.icp:8500 \
   --docker-username=admin \
   --docker-password=admin1! \
   --docker-email=null
@@ -198,10 +209,10 @@ secret "microclimate-helm-secret" created
 
 ### Create a new secret and Patch this secret to a service account
 
-And then use these command (**change my cluster.icp with your own cluster name** if necessary):
+Use the following command:
 
 ```
-kubectl create secret docker-registry microclimate-pipeline-secret --docker-server=mycluster.icp:8500 --docker-username=admin --docker-password=admin1! --docker-email=null --namespace=microclimate-pipeline-deployments
+kubectl create secret docker-registry microclimate-pipeline-secret --docker-server=$CLUSTERNAME.icp:8500 --docker-username=admin --docker-password=admin1! --docker-email=null --namespace=microclimate-pipeline-deployments
 ```
 
 And then patch the serviceaccount :
@@ -232,13 +243,10 @@ First define the **ibm-charts** helm repo (if not done in a previous exercise):
 helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/repo/stable/
 ```
 
-Then install Microclimate (change ipaddress with your cluster address)
-
-> **VERY IMPORTANT** : Change the **<masterip>** with the one of your master node.
-> It can take a few minutes before you can see the following results:
+Then install Microclimate with that command:
 
 ```
-helm install --name microclimate --namespace microclimate --set global.rbac.serviceAccountName=micro-sa,persistence.storageClassName=nfs-client,jenkins.Persistence.StorageClass=nfs-client,jenkins.rbac.serviceAccountName=pipeline-sa,global.ingressDomain=<masterip>.nip.io ibm-charts/ibm-microclimate --tls
+helm install --name microclimate --namespace microclimate --set global.rbac.serviceAccountName=micro-sa,persistence.storageClassName=nfs-client,jenkins.Persistence.StorageClass=nfs-client,jenkins.rbac.serviceAccountName=pipeline-sa,global.ingressDomain=${M1IP}.nip.io,jenkins.Pipeline.Registry.Url=$PREFIX.icp:8500 ibm-charts/ibm-microclimate --tls
 ```
 Results:
 
@@ -402,14 +410,16 @@ On the next menu, don't choose any service (but you can notice that we can bind 
 
 ![image-20190308152416608](images/image-20190308152416608-2055056.png)
 
-Be patient (it could take a **few minutes**). Your application should appear and the building process could still be running: 
+The first time, it take some time. 
+
+**Be patient** (it could take a **few minutes**). Your application should appear and the building process could still be running (there are also 1 minute between the successful build and the application running):
 
 ![image-20190311101347322](images/image-20190311101347322-2295627.png)
 
-Notice a few different information on the screen :
+Notice a few information on the screen :
 
-- Auto Build : when you change something in your code then you will rebuild automaticaly
-- You can see the Application POD ID
+- Auto Build : when you change something (and save it) in your code then it will be rebuilt automaticaly
+- You can see the Application POD ID (that you can see in the ICP UI)
 - The Application URL is also mentionned
 - The Run Load button will send some requests to your application so that you can see how it performs
 
