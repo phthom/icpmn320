@@ -538,6 +538,8 @@ Login Succeeded
 
 **Persistent volumes** : for our first installation, we need to have some basic hostpath volumes.
 
+> Note that hostpath volumes will not be used in a HA production environment. 
+
  Type the following commands:
 
 ```console
