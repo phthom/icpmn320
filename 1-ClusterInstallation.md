@@ -498,7 +498,6 @@ Results:
 cd
 curl -O https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
 tar -vxhf helm-v2.9.1-linux-amd64.tar.gz
-export PATH=/root/linux-amd64:$PATH
 export HELM_HOME=/root/.helm
 helm init --client-only
 helm version --tls
