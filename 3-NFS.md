@@ -50,7 +50,7 @@ Content of the exports file
 /data remoteip(rw,async,no_root_squash) 
 ```
 
-Where /data is your shared directory and remoteip is the ip address of your kubernetes nodes. You need to add all the ip addresses (and options) for **all members (nodes)** in the cluster in a **row**.
+Where /data is your shared directory and remoteip is the ip address of your kubernetes nodes. You need to add all the ip addresses (and options) for **all workers** in the cluster in a **row**.
 
 For example :
 
@@ -59,7 +59,7 @@ For example :
 #systemctl restart nfs-config
 #systemctl restart nfs-server
 #repetoire  host(option)
-/data 158.176.122.25(rw,async,no_root_squash) 158.176.122.27(rw,async,no_root_squash) 158.176.122.24(rw,async,no_root_squash) 158.176.122.35(rw,async,no_root_squash)
+/data 158.176.122.25(rw,async,no_root_squash) 158.176.122.27(rw,async,no_root_squash) 158.176.122.24(rw,async,no_root_squash)
 ```
 
 Save your change (Ctrl O + enter + Ctrl X)

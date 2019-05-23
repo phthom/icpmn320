@@ -6,7 +6,7 @@
 # Install an Application Lab
 ---
 
-This lab is compatible with ICP version 3.1.2
+
 
 ![image-20181130211541303](images/image-20181130211541303.png)
 
