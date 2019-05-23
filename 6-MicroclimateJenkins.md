@@ -39,9 +39,11 @@ From a machine that is hosting your environment, open a web browser and go to on
 
 Application workloads can be deployed to run on an IBM Cloud Private cluster. The deployment of an application workload must be made available as a Helm package. Such packages must either be made available for deployment on a Helm repository, or loaded into an IBM Cloud Private internal Helm repository.
 
-Be sure you are connected to your environment : ./connect2icp.sh
+Be sure you are connected to your environment : `./connect2icp.sh`
 
-Also check helm.
+Also check helm: `helm version`
+
+
 
 ## 1. Prepare the environment
 

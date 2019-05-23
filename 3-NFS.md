@@ -20,7 +20,7 @@ This document explains the steps to enable the NFS dynamic volume provisioning i
 
 Find below some basic instructions to setup and configure a NFS server. 
 
-We are going to configure a NFS server in the Master node.
+We are going to configure a NFS server in the **Master node** (normally we use specific servers for NFS but in that case this is for testing only).
 
 - Install a specific server with RHEL version 7 and some storage (in this case, we choose the **Master node** for simplicity)
 
@@ -50,15 +50,15 @@ Content of the exports file
 /data remoteip(rw,async,no_root_squash) 
 ```
 
-Where /data is your shared directory and remoteip is the ip address of your kubernetes nodes. You need to add all the ip addresses (and options) for **all workers** in the cluster in a **row**.
+Where /data is your shared directory and remoteip is the ip address of your kubernetes nodes. You need to add all the ip addresses (and options) for **all workers** in the cluster in a **row**. You can get all your worker ip in the icpinit file.
 
 For example :
 
 ```console
-# After modif
+# Dont forget to do this 2 commands after modif
 #systemctl restart nfs-config
 #systemctl restart nfs-server
-#repetoire  host(option)
+#directory  host(option)
 /data 158.176.122.25(rw,async,no_root_squash) 158.176.122.27(rw,async,no_root_squash) 158.176.122.24(rw,async,no_root_squash)
 ```
 

@@ -49,7 +49,7 @@ Another important prerequisite is Git.
 
 `yum -y install git`
 
-Results:
+Results (as an example):
 
 ```console
 ...

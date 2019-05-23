@@ -590,8 +590,6 @@ spec:
 EOF
 ```
 
-
-
 Results:
 
 ```console
@@ -668,6 +666,8 @@ EOF
 
 
 Refresh the management UI (it may take up to 10 seconds for changes to be reflected in the UI). Now that we’ve enabled isolation, the UI can no longer access the pods, and so they will no longer show up in the UI.
+
+> Notice that sometimes you can have a different display (like a bouncing ball or some strange picture depending on your browser)
 
 
 

@@ -171,7 +171,7 @@ Return to your directory:
 
 Create a new YAML file named **bookinfo.yaml** to save the Bookinfo application manifest.
 
-This file is located in 
+This file is located in the instructor's GitHub.
 
 **Don't create the kurbenetes resources yet**.
 
