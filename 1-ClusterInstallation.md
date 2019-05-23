@@ -48,17 +48,16 @@ You only need the Master Node VM to start.
 The name of each VM follows the following rules :
 
 - all VMs start with **nice**
-- then the name of the city : **e** for Ehningen or **p** for Paris as an example
-- then a single letter like a, **b** ...
+- 3 letters to make the cluster unique
 - type of node : **m** for master and **w** for worker
 - and finally a number on 2 digits like **01**, 02 ...
 
 So, your list of VMs could be (for Paris) :
 
-- nicepam01
-- nicepaw01
-- nicepaw02
-- nicepaw03
+- niceparm01
+- niceparw01
+- niceparw02
+- niceparw03
 
 The prefix and the cluster name are the same value and this name is specified in the document for each participant.  The suffix is always '.ibm.ws'. And password is always admin1!
 
@@ -80,15 +79,15 @@ You must use <u>ssh</u> or <u>putty</u> to the **master node**.
 
 `ssh root@<masterip>`
 
-Where the <masterip> is the first ip address (finishing by 01) of your group of VMs.
+Where the <masterip> is the ip address of your master (this has been given by the instructor)
 
-You are going to stay on the Master node during all the exercise.
+You are going to stay on the Master node during all the exercises.
 
 ### Step 2: Setup the credentials for all machines
 
 Prepare the following set of commands to set variables.
 
-Then you need to type all IPs and root passwords in a list like the one below (**please change the IPs and passwords, prefix and suffix accordingly to the ones you received**) :
+Normally you need to type all IPs and root passwords in a list like the one below (**please change the IPs and passwords, prefix and suffix accordingly to the ones you received**) :
 
 ```console
 export M1N=
@@ -138,23 +137,23 @@ export CLUSTERPASS=admin1!
 export SUFFIX=.ibm.ws
 ```
 
-You don't need to type all these values because we have prepared a file containing everything already set for you. 
+**You don't need to type all these values** because we have prepared a file containing everything already set for you. 
 
-Look at the the following file **icpinit.sh**
+Look at the the following file **icpinit**
 
-`more icpinit.sh`
+`more icpinit`
 
 This will normally produce the same list of variables. 
 
-**Cut and Paste** all the lines that you get from the more to **setup all variables**. 
+Check that we have set the variables by typing a command like: 
 
-`echo $PREFIX`
+`echo $M1IP`
 
 Results (as an example):
 
 ```
-# echo $PREFIX
-niceehnb
+# echo $M1IP
+158.176.128.214
 ```
 
 
@@ -281,6 +280,7 @@ total 13046976
 drwxr-xr-x. 2 root root        4096 Mar 22 04:33 .
 drwxr-xr-x. 8 root root        4096 Mar 22 05:17 ..
 -rw-r--r--. 1 root root 13347036806 Mar 21 18:41 ibm-cloud-private-x86_64-3.1.2.tar.gz
+...
 ```
 
 Execute the following commands:
@@ -306,7 +306,7 @@ docker run -v $(pwd):/data -e LICENSE=accept ibmcom/icp-inception-amd64:3.1.2-ee
 ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N ""
 cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys
 systemctl restart sshd
-\cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
+cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
 
 ```
 
@@ -390,9 +390,9 @@ echo "- '(.*)'" >> /opt/icp/cluster/config.yaml
 > - cluster name is set
 > - VA (Vulnerability Advisor) will be installed in the master node
 > - Istio will be installed
-> - Admin password is set
+> - Admin password is set (new !)
 > - Docker will be installed automatically on the worker nodes
-> - Password rule is set to anything
+> - Password rule is set to anything (New and important !)
 
 
 
@@ -404,7 +404,7 @@ Type the following command to install ICP Cluster on the 3 nodes:
 cd /opt/icp/cluster
 docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.1.2-ee install
 ```
-> Note : the installation should take **30 minutes**. So, if you don't see any error during the first 5 minutes, take another coffee or go to the lunch. 
+> Note : the installation should take **30 minutes**. So, if you don't see any error during the first 5 minutes, take another coffee or go to lunch. 
 
 > Note : in case of error, you can retry the installation command **or** you can use the **uninstall** process :
 ```console 
@@ -506,8 +506,6 @@ helm version --tls
 docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
 ```
 
-
-
 Results: 
 
 ```console
@@ -600,13 +598,9 @@ Go to the **menu** (top left), click on **Platform** then on **Storage**:
 
 At this point you should see your 2 new Hostpath Persistent storage.
 
-Click on the **Catalog** menu (top right) to look at the list of applications already installed:
+Click on the **Catalog** menu (top right) to look at the list of applications already installed.
 
-![image-20190322181944089](../../../../IBMCloud%20Private/Workshops/2019-03%20Advanced/LAB/images/image-20190322181944089-3275184.png)
-
-
-
-The **Catalog** shows Charts that you can visit (it could take au few seconds to refresh the first time)
+The Catalog shows Charts that you can visit (it could take au few seconds to refresh the first time)
 
 You can look at the (helm) catalog and visit some entries (but don't create any application at the moment).
 
@@ -757,7 +751,7 @@ echo -e "${CYAN}Create Keys on Master ${NC}"
 ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N ""
 cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys
 systemctl restart sshd
-\cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
+cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
 
 
 # Save the installation zip file to images
