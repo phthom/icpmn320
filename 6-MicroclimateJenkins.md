@@ -41,7 +41,7 @@ Application workloads can be deployed to run on an IBM Cloud Private cluster. Th
 
 Be sure you are connected to your environment : `./connect2icp.sh`
 
-Also check helm: `helm version`
+Also check helm: `helm version --tls`
 
 
 
