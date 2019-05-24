@@ -536,6 +536,21 @@ Login Succeeded
 
 ```
 
+Now modify your .bashrc file so that when you login again, you will be connected to the cluster:
+
+```
+cd
+cat <<END >>.bashrc
+./connect2icp.sh
+export HELM_HOME=/root/.helm
+cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
+helm version --tls
+END
+source .bashrc
+```
+
+
+
 **Persistent volumes** : for our first installation, we need to have some basic hostpath volumes.
 
 > Note that hostpath volumes will not be used in a HA production environment. 
@@ -833,6 +848,16 @@ export HELM_HOME=/root/.helm
 helm init --client-only
 helm version --tls
 docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
+
+# Source .bashrc
+
+cat <<END >>.bashrc
+./connect2icp.sh
+export HELM_HOME=/root/.helm
+cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
+helm version --tls
+END
+source .bashrc
 
 # Installing Persistent Storage in the Master
 
