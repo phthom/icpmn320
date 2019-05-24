@@ -444,7 +444,7 @@ The application should appear (this is a very simple page):
 
 ![image-20190308152908524](images/image-20190308152908524-2055348.png)
 
-Navigate on the left pane to the **Edit** button:
+Navigate on the left pane to the **Edit** button (the first time, it could take 1 minute to start):
 
 ![image-20190308153005837](images/image-20190308153005837-2055405.png)
 
@@ -541,9 +541,7 @@ Click on **Open Pipeline** to get access to Jenkins  (enter your credentials at 
 
 
 
-Wait until the progression ends:
-
-You can look at the bottom left side to see there are some slave executor available :
+You can look at the bottom left side to see there are some slave executor available (wait about 1mn) :
 
 ![image-20190311105944709](images/image-20190311105944709-2298384.png)
 
