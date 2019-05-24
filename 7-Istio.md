@@ -68,6 +68,12 @@ cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -
 helm version --tls
 ```
 
+If you need to delete all istio components:
+
+```
+kubectl get crd | grep istio | awk '{print $1}' | xargs kubectl delete crd
+```
+
 Be sure to be at the latest version(this command upgrade ISTIO at the latest version):
 
 ```console
