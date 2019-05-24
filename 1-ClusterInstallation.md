@@ -543,7 +543,7 @@ Login Succeeded
  Type the following commands:
 
 ```console
-cd /tmp
+cd /var
 mkdir data01
 
 cat <<EOF | kubectl create -f -
@@ -557,7 +557,7 @@ spec:
   capacity:
     storage: 50Gi
   hostPath:
-    path: /tmp/data01
+    path: /var/data01
   persistentVolumeReclaimPolicy: Recycle
 EOF
 
@@ -572,7 +572,7 @@ spec:
   capacity:
     storage: 50Gi
   hostPath:
-    path: /tmp/data01
+    path: /var/data01
   persistentVolumeReclaimPolicy: Recycle
 EOF
 
