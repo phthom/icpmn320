@@ -538,7 +538,7 @@ Login Succeeded
 
 Now modify your .bashrc file so that when you login again, you will be connected to the cluster:
 
-```
+```console
 cd
 cat <<END >>.bashrc
 ./connect2icp.sh
