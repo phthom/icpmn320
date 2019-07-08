@@ -12,7 +12,7 @@
 
 The purpose of this lab is to install a complete IBM Cloud Private cluster running on multiple nodes.
 
-> **Prerequisites** : you should have defined 4 (virtual) machines (RHEL version 7.6) and collected IP addresses and root passwords for these 4 machines.
+> **Note** : you should have defined 4 (virtual) machines (RHEL version 7.6) and collected IP addresses and root passwords for these machines.
 
 
 
@@ -21,12 +21,13 @@ The purpose of this lab is to install a complete IBM Cloud Private cluster runni
 
 # Task 1: Prerequisites
 
-Before you start installing IBM Cloud Private, you must provision a set of four machines using your favorite vitualization tools or your prefered cloud infrastructure :
+Before you start installing IBM Cloud Private, you must provision a set of four machines using your favorite vitualization tools or on your prefered cloud infrastructure :
 - One master node (including boot node, management node, va node, proxy node) : 8 vcores, 32 GB (RAM), 300 GB (Storage), one IP
 - Three worker nodes:  8  vcores, 16 GB (RAM), 100 GB (Storage), one IP per worker
-- One VM for NFS with NFS configured - or install the NFS server in the Master node
 - All nodes are running RHEL version 7.6
-- ICP Enterprise Edition - version 3.1.2
+- ICP Enterprise Edition - version 3.2
+
+Concerning NFS, in that case,  we will install the NFS server later in the Master node (see a specific lab for this).
 
 ![image-20190514161953536](images/image-20190514161953536-7843593.png)
 
@@ -34,36 +35,42 @@ Before you start installing IBM Cloud Private, you must provision a set of four 
 
 Let's say that we have a **prefix hostname** (**nicekkk** in my example). Then each node will get a complementary character or string at the end :
 - m01 : example - nicekkkm01 for the master node (and all the other nodes included - see above)
-- w01 or w02 or w030 : example - nicexkkkw01 and nicekkkw03 for the worker nodes
+- w01 or w02 or w03 : for example - nicexkkkw01,  nicexkkkw02 and nicekkkw03 for the worker nodes
 - The NFS node name is not involved at this point and it will be located on the master
 
-**A list of Master VMs will be given to you during the workshop.** 
 
-Please take one Master VM and put your name.
+
+A list of Master VMs will be given to you during the workshop.
+
+Please pick one Master VM and write your name on the right part of the document.
 
 ![image-20190514220017880](images/image-20190514220017880-7864017.png)
 
-You only need the Master Node VM to start.
+You only need to know the Master Node VM to work on the labs.
 
-The name of each VM follows the following rules :
+The name of each VM follows the following conventions:
 
 - all VMs start with **nice**
-- 3 letters to make the cluster unique
-- type of node : **m** for master and **w** for worker
-- and finally a number on 2 digits like **01**, 02 ...
+- **3 letters** to make the cluster unique (kkk in my example)
+- the type of node : **m** for master and **w** for worker
+- and finally, 2 digits like **01**, 02 ...
 
-So, your list of VMs could be (for Paris) :
+So, your list of VMs could be for example:
 
 - niceparm01
 - niceparw01
 - niceparw02
 - niceparw03
 
-The prefix and the cluster name are the same value and this name is specified in the document for each participant.  The suffix is always '.ibm.ws'. And password is always admin1!
+The prefix and the cluster name are the same value and this name is specified in the document for each participant.  The suffix is always '.ibm.ws'. 
+
+There are 2 passwords : one to ssh to the VM and the other to access the cluster. This second value is accessible thru `echo $CLUSTERPASS`
 
 > **Please don't change the given prefix name, cluster name, cluster password and suffix name.**
 
-All machines should be **up** and **running**. They also must be **accessible** to each other. 
+All machines should be **up** and **running**. 
+
+They also must be **accessible** to each other thru their IPs. 
 
 Everything has been made with automation in mind. 
 
@@ -75,21 +82,23 @@ Everything has been made with automation in mind.
 
 You must use <u>ssh</u> or <u>putty</u> to the **master node**.
 
-**Login to your master**/boot node by using the following command (change with you master IP address) :
+**Login to your master** node by using the following command (change with you master IP address) :
 
-`ssh root@<masterip>`
+```bash
+ssh root@<masterip>
+```
 
-Where the <masterip> is the ip address of your master (this has been given by the instructor)
+Where the <masterip> is the ip address of your master (this has been given by the instructor in the document)
 
-You are going to stay on the Master node during all the exercises.
+You will stay on the Master node during all the labs.
 
 ### Step 2: Setup the credentials for all machines
 
-Prepare the following set of commands to set variables.
+We have decided to automate most of the installation by setting **variables**.
 
-Normally you need to type all IPs and root passwords in a list like the one below (**please change the IPs and passwords, prefix and suffix accordingly to the ones you received**) :
+Normally you need to type all IPs and root passwords in a list of variables like the one below:
 
-```console
+```bash
 export M1N=
 export M1IP=
 export M1PW=
@@ -104,21 +113,21 @@ export W3IP=
 export W3PW=
 export PREFIX=
 export CLUSTERNAME=
-export CLUSTERPASS=admin1!
+export CLUSTERPASS=
 export SUFFIX=.ibm.ws
 ```
 
-> Note that in this lab, all machines will be accessed using the super user **root**.
->
-> CLUSTERNAME and PREFIX are identical.
->
-> CLUSTERPASS=admin1!
->
-> SUFFIX=.ibm.ws
+**We have already prepared files containing these variables for you.** All variables are set thru .bashrc or in the icpinit files. 
 
-Here is an example :
+Look at the the following file **icpinit**:
 
-```console
+```bash
+more icpinit
+```
+
+Results:
+
+```bash
 export M1N=niceehnbm01
 export M1IP=158.176.122.50
 export M1PW=Hy28n7aC
@@ -131,40 +140,38 @@ export W2PW=D9xc5yvd
 export W3N=niceehnbw03
 export W3IP=158.176.122.38
 export W3PW=AK2xVbj8
-export PREFIX=niceehnb
-export CLUSTERNAME=niceehnb
+export PREFIX=nicekkk
+export CLUSTERNAME=nicekkk
 export CLUSTERPASS=admin1!
 export SUFFIX=.ibm.ws
 ```
 
-**You don't need to type all these values** because we have prepared a file containing everything already set for you. 
+Check that all the variables have a value.
 
-Look at the the following file **icpinit**
-
-`more icpinit`
-
-This will normally produce the same list of variables. 
-
-Check that we have set the variables by typing a command like: 
+Alternatively, type a command like: 
 
 `echo $M1IP`
 
 Results (as an example):
 
-```
+```bash
 # echo $M1IP
 158.176.128.214
 ```
+
+> **Don't change the values or the variable names**.
+>
+> All the steps and most labs are using these variables.
 
 
 
 ###Step 3: Create a credential file for all your nodes
 
-We need to create a credentials file for some next steps (to distribute automaticaly all keys and /etc/hosts to all nodes). 
+We need to create a credential file for some next steps (to distribute automaticaly all keys and /etc/hosts to all nodes). 
 
 Please **copy, paste and execute** the following commands in the master terminal:
 
-```console
+```bash
 cd /root/.ssh
 cat <<END > credentials
 root:$W1PW@$W1IP
@@ -175,11 +182,13 @@ END
 
 Check the output with the following command :
 
-`more credentials`
+```bash
+more credentials
+```
 
 Results (as an example):
 
-```console
+```bash
 # more credentials 
 root:DTs42t8a@158.176.122.11
 root:D9xc5yvd@158.176.83.198
@@ -190,9 +199,8 @@ root:AK2xVbj8@158.176.122.38
 
 We now need to create an **/etc/hosts** file for all nodes. **Execute** the following commands:
 
-```console 
+```bash
 cd /root
-
 cat <<END > /etc/hosts
 127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
 $M1IP  ${PREFIX}m01  ${PREFIX}m01${SUFFIX}
@@ -203,9 +211,13 @@ END
 ```
 > Note : the dns suffix name used here is .ibm.ws could not be change for this lab.
 
+```bash
+more /etc/hosts
+```
+
 Check the results (as an example):
 
-```console
+```bash
 # more /etc/hosts
 127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
 158.176.122.50  niceehnbm01  niceehnbm01.ibm.ws
@@ -218,16 +230,14 @@ Check the results (as an example):
 
 #Task 3: Install Docker on the master node
 
-First, you need to create a file that will be used to install Docker on the master and all the other  nodes. 
+First, you need to create a file that will be used to install Docker on the master (a file containing docker installation **icp-docker-18.06.2_x86_64.bin** has been already uploaded on your master). You can also install Docker from Docker Hub (version 18.06.2 is required).
 
-To do so execute the following command:
-```console
+To do so,  **execute** the following commands:
+```bash
 cd /root
-
 cat << 'END' > dockerinstall.sh
-yum check-update -y
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install -y docker-ce-18.03.1.ce-1.el7.centos
+chmod +x icp-docker-18.06.2_x86_64.bin
+./icp-docker-18.06.2_x86_64.bin --install
 systemctl start docker
 systemctl stop firewalld
 systemctl disable firewalld
@@ -236,72 +246,87 @@ docker version
 END
 ```
 
-Then you can execute this script to install docker:
-```console
+Then you can **execute** this script to install docker:
+```bash
 cd /root
 chmod +x dockerinstall.sh
 ./dockerinstall.sh
 ```
 
 This command should end with the following results:
-```console 
+```bash
+...
 Client:
- Version:      18.03.1-ce
- API version:  1.37
- Go version:   go1.9.5
- Git commit:   9ee9f40
- Built:        Thu Apr 26 07:20:16 2018
- OS/Arch:      linux/amd64
- Experimental: false
- Orchestrator: swarm
+ Version:           18.06.2-ce
+ API version:       1.38
+ Go version:        go1.10.3
+ Git commit:        %{_gitcommit}
+ Built:             Mon Mar 25 06:03:28 2019
+ OS/Arch:           linux/amd64
+ Experimental:      false
 
 Server:
  Engine:
-  Version:      18.03.1-ce
-  API version:  1.37 (minimum version 1.12)
-  Go version:   go1.9.5
-  Git commit:   9ee9f40
-  Built:        Thu Apr 26 07:23:58 2018
-  OS/Arch:      linux/amd64
-  Experimental: false
+  Version:          18.06.2-ce
+  API version:      1.38 (minimum version 1.12)
+  Go version:       go1.10.3
+  Git commit:       %{_gitcommit}
+  Built:            Mon Mar 25 06:04:45 2019
+  OS/Arch:          linux/amd64
+  Experimental:     false
+
 
 ```
+
+
 
 #Task 4: Download ICP installation code
 
 You can get the ICP zip file into the Passport Advantage IBM web site.
 
-However, in your **/root** directory, we already have copied this zip file (**ibm-cloud-private-x86_64-3.1.2.tar.gz**):
+However, in your **/root** directory, we already have copied this zip file (**ibm-cloud-private-x86_64-3.2.0.tar.gz**) for you.
 
 ```
+cd /root
+ls -al
+```
+
+Results:
+
+```bash
 # cd root
 # ls -al
 total 13046976
 drwxr-xr-x. 2 root root        4096 Mar 22 04:33 .
 drwxr-xr-x. 8 root root        4096 Mar 22 05:17 ..
--rw-r--r--. 1 root root 13347036806 Mar 21 18:41 ibm-cloud-private-x86_64-3.1.2.tar.gz
+-rw-r--r--. 1 root root 10697215684 Jul 7 18:41 ibm-cloud-private-x86_64-3.2.0.tar.gz
 ...
 ```
 
-Execute the following commands:
+**Execute** the following commands:
 
-```console
+```bash
 cd /root
-tar xf ibm-cloud-private-x86_64-3.1.2.tar.gz -O | docker load
+tar xf ibm-cloud-private-x86_64-3.2.0.tar.gz -O | docker load
 ```
 
-This unzips and loads docker images locally. It  can last **5 to 10 minutes**. Please wait and grab a coffee. 
+This unzips and loads docker images locally in the master. 
+
+It  can last **10 minutes**. Please wait and grab a coffee. 
+
+
 
 #Task 5: Create ssh keys
 
-On the master, we need to generate ssh keys that will copied across the cluster for **secure communications**. 
+On the master, we need to generate ssh keys that we will copy across the cluster for **secure communications**. 
 
 **Execute** the following commands:
 
-```console 
+```bash
+cd /root
 mkdir /opt/icp
 cd /opt/icp
-docker run -v $(pwd):/data -e LICENSE=accept ibmcom/icp-inception-amd64:3.1.2-ee cp -r cluster /data
+docker run -v $(pwd):/data -e LICENSE=accept ibmcom/icp-inception-amd64:3.2.0-ee cp -r cluster /data
 
 ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N ""
 cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys
@@ -314,47 +339,54 @@ cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
 
 Check the results:
 
-```console
+```bash
 cd /opt/icp/cluster
-[root@nicekkk01 cluster]# ls
-cfc-certs  cfc-components  config.yaml  hosts logs  ssh_key
-
+# ls
+config.yaml  hosts logs  ssh_key
 ```
 
-Move the ICP zip file into another location:
+**Move** the ICP zip file into another location:
 
-```console
+```bash
 cd /opt/icp
 mkdir -p cluster/images
-mv /root/ibm-cloud-private-x86_64-3.1.2.tar.gz  cluster/images/
+mv /root/ibm-cloud-private-x86_64-3.2.0.tar.gz  cluster/images/
 ```
 
 
 
 ### Distribute ssh keys on the other nodes
 
-**Execute**  2 commands to **distribute** the keys and restart **sshd** on all nodes (these commands use sshpass that will transfer the pasword when requested):
+**Execute**  those commands to **distribute** the keys to all nodes and restart **sshd** on all nodes (these commands use sshpass that will type the pasword when requested):
 
-```console
+```bash
 cd /root/.ssh
 
 tr ':@' '\n' < credentials | xargs -L3 sh -c 'sshpass -p $1 ssh-copy-id -o StrictHostKeyChecking=no -f $0@$2'
 tr ':@' '\n' < credentials | xargs -L3 sh -c 'ssh -o StrictHostKeyChecking=no $0@$2 systemctl restart sshd'
 ```
 
+After this step, we will no longer need passwords to access worker nodes.
+
+
+
 ### Copy /etc/hosts on all nodes
 
 **Execute** this command to copy remotely /etc/hosts on all worker nodes:
 
-```console
+```bash
 tr ':@' '\n' < credentials | xargs -L3 sh -c 'scp -o StrictHostKeyChecking=no /etc/hosts $0@$2:/etc/hosts'
 ```
 
+Then we will use hostnames to get access to worker nodes instead of IP addresses.
+
+
+
 # Task 6: Configure ICP Installation
 
-**Execute** this first command to define the ICP topology (one master and 2 workers). The management, the proxy and the VA (Vulnerability) are hosted in the master node:
+**Execute** this code to define the ICP topology (one master and 3 workers). The management, the proxy and the VA (Vulnerability) are hosted in the master node:
 
-```console 
+```bash
 cd /root
 cat <<END > /opt/icp/cluster/hosts
 [master]
@@ -372,13 +404,12 @@ $M1IP
 END
 ```
 
-Configure ICP file (config.yaml). To do so, **Execute** the following commands:
+Configure the **config.yaml** file To do so, **Execute** the following commands:
 
-```console
+```bash
 cd /opt/icp/cluster
 sed -i "s/# cluster_name: mycluster/cluster_name: $CLUSTERNAME/g" /opt/icp/cluster/config.yaml
 sed -i 's/  vulnerability-advisor: disabled/  vulnerability-advisor: enabled/g' /opt/icp/cluster/config.yaml
-sed -i 's/  istio: disabled/  istio: enabled/g' /opt/icp/cluster/config.yaml
 sed -i "s/# default_admin_password:/default_admin_password: $CLUSTERPASS/g" /opt/icp/cluster/config.yaml
 sed -i 's/# install_docker: true/install_docker: true/g' /opt/icp/cluster/config.yaml
 echo "password_rules:" >> /opt/icp/cluster/config.yaml
@@ -389,28 +420,58 @@ echo "- '(.*)'" >> /opt/icp/cluster/config.yaml
 >
 > - cluster name is set
 > - VA (Vulnerability Advisor) will be installed in the master node
-> - Istio will be installed
-> - Admin password is set (new !)
+> - Admin password is set 
 > - Docker will be installed automatically on the worker nodes
 > - Password rule is set to anything (New and important !)
 
 
 
+To understand the installation setup, you can look at the **config.yaml** file where you have all the parameters:
+
+```bash
+nano /opt/icp/cluster/config.yaml
+```
+
+Review some options (**but don't change any parameters**) :
+
+```
+# Licensed Materials - Property of IBM
+# IBM Cloud private
+# @ Copyright IBM Corp. 2017 All Rights Reserved
+# US Government Users Restricted Rights - Use, duplication or disclosure restricted by GSA ADP Schedule Contract with IBM Corp.
+
+---
+
+## Network Settings
+network_type: calico
+# network_helm_chart_path: < helm chart path >
+
+## Network in IPv4 CIDR format
+network_cidr: 10.1.0.0/16
+
+## Kubernetes Settings
+service_cluster_ip_range: 10.0.0.0/16
+
+# cluster_domain: cluster.local
+# cluster_name: mycluster
+# cluster_CA_domain: "{{ cluster_name }}.icp"
+
+...
+```
+
+
+
 #Task 7: Install ICP Enterprise Edition
 
-Type the following command to install ICP Cluster on the 3 nodes:
+Type the following command to install ICP Cluster on the 4 nodes:
 
 ```console
 cd /opt/icp/cluster
-docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.1.2-ee install
+docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.2.0-ee install
 ```
-> Note : the installation should take **30 minutes**. So, if you don't see any error during the first 5 minutes, take another coffee or go to lunch. 
+> Note : the installation should take **35 minutes**. So, if you don't see any error during the first 5 minutes, take another coffee or go to lunch. 
 
-> Note : in case of error, you can retry the installation command **or** you can use the **uninstall** process :
-```console 
-cd /opt/icp/cluster
-docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.1.2-ee uninstall
-```
+
 
 At the end of the ICP installation, you will get the following results:
 
@@ -418,7 +479,14 @@ At the end of the ICP installation, you will get the following results:
 
 Take a note of the URL : `https://<masterip>:8443`
 
-Check your connection to the master by using this URL (admin / admin1! ):
+> **Important Note** : in case of error, you can either **retry** the installation command **or** you can use the **uninstall** process (it takes generally 2 minutes) :
+
+```console 
+cd /opt/icp/cluster
+docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.2.0-ee uninstall
+```
+
+Check your connection to the master by using the URL
 
 ![image-20190322165536752](images/image-20190322165536752-3270136.png)
 
@@ -430,9 +498,15 @@ Got to the Dashboard: click on the hamburger **menu > Dashboard:**
 
 # Task 8: CLI installations
 
-**kubectl** has been already installed :
+**kubectl** has been already installed on the master node :
 
- ```console 
+```bash
+kubectl
+```
+
+Results:
+
+ ```bash
 # kubectl
 kubectl controls the Kubernetes cluster manager. 
 
@@ -447,9 +521,17 @@ Basic Commands (Beginner):
 Basic Commands (Intermediate) ...
  ```
 
- The cloudctl CLI command should have been installed. **Execute** the following command **cloudctl**:
+ 
 
-```console
+**cloudctl** CLI command should have been also installed. 
+
+```bash
+cloudctl
+```
+
+Results:
+
+```bash
 # cloudctl
 NAME:
    cloudctl - A command line tool to interact with IBM Cloud Private
@@ -459,92 +541,93 @@ USAGE:
 
 VERSION:
    3.1.1-973+c18caee2d82dc45146f843cb82ae7d5c28da7bc7
-
+...
 ```
 
 > cloudctl command is a usefull command to modify the infrastructure level of the cluster (like adding a new node or load helm repo). 
 
 
 
-Modify the **connect2icp** command by **executing** the following commands:
+Use the **cloudctl** command to login to the cluster (prerequisites before you install helm):
 
-```console
-cd /root
-sed -i "s/CLUSTERNAME=mycluster/CLUSTERNAME=$CLUSTERNAME/g" /root/connect2icp.sh
-sed -i "s/PASSWD=admin/PASSWD=$CLUSTERPASS/g" /root/connect2icp.sh
-chmod +x connect2icp.sh
-./connect2icp.sh
-```
-
-> connect2icp.sh is a shell script to be executed after 12 hours (a token needs to renewed). This command tells kubectl where to connect.
-
-
-
-Use the **cloudctl** command to **login** to the cluster (prerequisites before you install helm):
-
-```console
+```bash
 cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
 ```
 
-Results:
+Results (as an example):
 
-![image-20190322170842592](images/image-20190322170842592-3270922.png)
+```bash
+# cloudctl login -a https://mycluster.icp:8443 --skip-ssl-validation -u admin -p admin1! -n default
+Authenticating...
+OK
+
+Targeted account mycluster Account (id-mycluster-account)
+
+Targeted namespace default
+
+Configuring kubectl ...
+Property "clusters.mycluster" unset.
+Property "users.mycluster-user" unset.
+Property "contexts.mycluster-context" unset.
+Cluster "mycluster" set.
+User "mycluster-user" set.
+Context "mycluster-context" created.
+Switched to context "mycluster-context".
+OK
+
+Configuring helm: /root/.helm
+OK
+```
 
 
 
- Install helm with the following commands:
+Check **helm** with the following commands:
 
-```console
+```bash
 cd
-curl -O https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
-tar -vxhf helm-v2.9.1-linux-amd64.tar.gz
-export HELM_HOME=/root/.helm
-helm init --client-only
-helm version --tls
-
-docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
+helm version --tls --short
 ```
 
 Results: 
 
-```console
-Configuring helm: /root/.helm
-OK
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100 8946k  100 8946k    0     0  24.4M      0 --:--:-- --:--:-- --:--:-- 24.4M
-linux-amd64/
-linux-amd64/README.md
-linux-amd64/helm
-linux-amd64/LICENSE
-Creating /root/.helm/repository 
-Creating /root/.helm/repository/cache 
-Creating /root/.helm/repository/local 
-Creating /root/.helm/plugins 
-Creating /root/.helm/starters 
-Creating /root/.helm/cache/archive 
-Creating /root/.helm/repository/repositories.yaml 
-Adding stable repo with URL: https://kubernetes-charts.storage.googleapis.com 
-Adding local repo with URL: http://127.0.0.1:8879/charts 
-$HELM_HOME has been configured at /root/.helm.
-Not installing Tiller due to 'client-only' flag having been set
-Happy Helming!
-Client: &version.Version{SemVer:"v2.9.1", GitCommit:"20adb27c7c5868466912eebdf6664e7390ebe710", GitTreeState:"clean"}
-Server: &version.Version{SemVer:"v2.9.1+icp", GitCommit:"8ddf4db6a545dc609539ad8171400f6869c61d8d", GitTreeState:"clean"}
-WARNING! Using --password via the CLI is insecure. Use --password-stdin.
-Login Succeeded
-
+```bash
+# helm version --tls --short
+Client: v2.12.3+geecf22f
+Server: v2.12.3+icp+g34e12ad
 ```
 
-Now modify your .bashrc file so that when you login again, you will be connected to the cluster:
 
-```console
+
+Get access to the **registry**:
+
+```
+docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
+```
+
+Results:
+
+```bash
+# docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+```
+
+
+
+Now modify your **.bashrc** file so that when you login again, you will be connected to the cluster:
+
+```bash
 cd
 cat <<END >>.bashrc
 ./connect2icp.sh
 export HELM_HOME=/root/.helm
 cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
 helm version --tls
+docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
 END
 source .bashrc
 ```
@@ -557,7 +640,7 @@ source .bashrc
 
  Type the following commands:
 
-```console
+```bash
 cd /var
 mkdir data01
 
@@ -596,17 +679,21 @@ cd /root
 
 
 
-# Task 9: Check your ICP console
+# Task 9: Using the IBM Cloud Private UI
 
 Type the following URL in your browser:
 
-`https://<masterip>:8443`
+```http
+https://<masterip>:8443
+```
+
+
 
 Go to the **menu** (top left), click on **Dashboard**
 
 ![image-20190322172231724](images/image-20190322172231724-3271751.png)
 
-Check the number of nodes (3), the 48% of available storage and the 61 healthy pods.
+Check the number of nodes (4), around 48% of available storage and the 0 unhealthy pods.
 
 Go to the **menu** (top left), click on **Platform** then on **Storage**:
 
@@ -624,81 +711,79 @@ You can look at the (helm) catalog and visit some entries (but don't create any 
 
 
 
+
+
 # Congratulations 
 
 You have successfully installed, deployed and customized the Kubernetes Cluster for an **IBM Cloud Private Enterprise Edition** !
 
 You finally went thru the following features :
 
-- [x] You setup a VM using RHEL version 7.6
+- [x] You setup a cluster of VMs using RHEL version 7.6
 
 - [x] You checked all the prerequisites before the ICP installation
 
 - [x] You installed Docker
 
-- [x] You installed ICP Enterprise Edition (version 3.1.2) on a multi-node cluster
+- [x] You installed ICP Enterprise Edition (version 3.2) on a multi-node cluster
 
 - [x] You connected to the ICP console
 
 - [x] You setup some persistent storage
 
-- [x] You installed a functional Kubernetes Cluster on a 3 nodes for testing and learning
+- [x] You installed a functional Kubernetes Cluster on a 4 nodes for testing and learning
+
 
 
 # Appendix: "All in One" Script 
 
-Find below one script file for the automated installation (All in one script - dont forget to change the IPs, passwords, clustername and prefix):
+Find below one script file for the automated installation (All in one script - dont forget to change the IPs, passwords, clustername and prefix).
 
-```console
+Follow the steps :
+
+- copy the lines into a file like **icpinstall.sh** in you /root directory
+- edit the file and change the **IPs, passwords, clustername and prefix** from the icpinit file or your own requirements
+- change the permission: `chmod +x icpinstall.sh`
+- Execute the script: `./icpinstall.sh`
+- Don't forget to continue on task 8
+
+
+
+**Example of automated installation script**
+
+```bash
 #!/bin/bash
-# ----------------------------------------- #
-# PRODEDURE TO DEPLOY multiple Empty NODES  #
-# ----------------------------------------- #
-#
-# Prerequisites
-# -------------
-#
-# RHEL 7.6
-# ICP 3.1.2 EE or CE
-# IBM Cloud VSI
-#  
 # 
-# Possible parameters:
-#
-# Global prefix :   VSI prefix name (SL only)
-# DC name :         lon06 as default DataCenter name
-# Edition :         EE or CE
-#
-export M1N=niceehnbm01
-export M1IP=158.176.122.50
-export M1PW=Hy28n7aC
-export W1N=niceehnbw01
-export W1IP=158.176.122.11
-export W1PW=DTs42t8a
-export W2N=niceehnbw02
-export W2IP=158.176.83.198
-export W2PW=D9xc5yvd
-export W3N=niceehnbw03
-export W3IP=158.176.122.38
-export W3PW=AK2xVbj8
-export PREFIX=niceehnb
-export CLUSTERNAME=niceehnb
-export CLUSTERPASS=admin1!
+export M1N=nicebotm01
+export M1IP=158.176.128.155
+export M1PW=BWQP7n3U
+export W1N=nicebotw01
+export W1IP=158.176.128.167
+export W1PW=CNczLh7X
+export W2N=nicebotw02
+export W2IP=158.176.128.139
+export W2PW=Rear7BPr
+export W3N=nicebotw03
+export W3IP=158.176.128.219
+export W3PW=EJ3xaxQx
+export PREFIX=nicebot
+export CLUSTERNAME=nicebot
+export CLUSTERPASS=nicebot-
 export SUFFIX=.ibm.ws
 #
 
 ##################################################################
-# ICP 3.1.2 EE - Docker 18.03.1 - RHEL 7.6 - Automatic Docker
+# ICP 3.2.0 EE - Docker 18.06.2 - RHEL 7.6 - Automatic Docker
 # One boot/Master/VA/Proxy, 3 Worksers
 # Enterprise Edition
 ##################################################################
 
-CYAN='\033[1;36m'
+CC='\033[1;36m'
 NC='\033[0m' # No Color
 
 # Create Credentials (excluding Master) on the Master
 
-echo -e "${CYAN}Create Credentials ${NC} "
+echo -e "$CC Create Credentials $NC"
 cd /root/.ssh
 
 cat <<END > credentials
@@ -709,7 +794,7 @@ END
 
 # Create /etc/hosts on the Master
 
-echo -e "${CYAN}Create hosts ${NC} "
+echo -e "$CC Create hosts $NC"
 cd /root
 
 cat <<END > /etc/hosts
@@ -722,13 +807,14 @@ END
 
 # Create Docker installation script on the Master
 
-echo -e "${CYAN}Create Docker installation script ${NC} "
+echo -e "$CC Create Docker installation script $NC"
 cd /root
 
 cat << 'END' > dockerinstall.sh
 yum check-update -y
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install -y docker-ce-18.03.1.ce-1.el7.centos
+chmod +x icp-docker-18.06.2_x86_64.bin
+./icp-docker-18.06.2_x86_64.bin --install
 systemctl start docker
 systemctl stop firewalld
 systemctl disable firewalld
@@ -739,7 +825,7 @@ END
 
 # Install Docker on the Master
 
-echo -e "${CYAN}Install Docker on Master ${NC}"
+echo -e "$CC Install Docker on Master $NC"
 cd /root
 chmod +x dockerinstall.sh
 ./dockerinstall.sh
@@ -747,40 +833,40 @@ chmod +x dockerinstall.sh
 
 # Upload & unzip ICP installation file to the Master (takes 10mn)
 
-echo -e "${CYAN}Unzip ICP installation file on Master ${NC}"
+echo -e "$CC Unzip ICP installation file on Master $NC"
 cd /root
-tar xf ibm-cloud-private-x86_64-3.1.2.tar.gz -O | docker load
+tar xf ibm-cloud-private-x86_64-3.2.0.tar.gz -O | docker load
 
 
 # Copy Config Files for icp-ee in /opt directory on the Master
 
-echo -e "${CYAN}Copy Config Files on Master ${NC}"
+echo -e "$CC Copy Config Files on Master $NC"
 cd /root
 mkdir /opt/icp
 cd /opt/icp
-docker run -v $(pwd):/data -e LICENSE=accept ibmcom/icp-inception-amd64:3.1.2-ee cp -r cluster /data
+docker run -v $(pwd):/data -e LICENSE=accept ibmcom/icp-inception-amd64:3.2.0-ee cp -r cluster /data
 
 
 # Create Keys in /opt/icp on the Master
 
-echo -e "${CYAN}Create Keys on Master ${NC}"
+echo -e "$CC Create Keys on Master $NC"
 ssh-keygen -b 4096 -f ~/.ssh/id_rsa -N ""
 cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys
 systemctl restart sshd
-cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
+\cp -f ~/.ssh/id_rsa /opt/icp/cluster/ssh_key
 
 
 # Save the installation zip file to images
 
-echo -e "${CYAN}Save the installation zip file to images${NC}"
+echo -e "$CC Save the installation zip file to images$NC"
 cd /opt/icp
 mkdir -p cluster/images
-mv /root/ibm-cloud-private-x86_64-3.1.2.tar.gz  cluster/images/
+mv /root/ibm-cloud-private-x86_64-3.2.0.tar.gz  cluster/images/
 
 
 # From the master - Install Hosts, Docker, restart SSH and copy keys on each NODE
 
-echo -e "${CYAN}Install Hosts, Docker, restart SSH and copy keys on each NODE${NC}"
+echo -e "$CC Install Hosts, Docker, restart SSH and copy keys on each NODE$NC"
 cd /root/.ssh
 tr ':@' '\n' < credentials | xargs -L3 sh -c 'sshpass -p $1 ssh-copy-id -o StrictHostKeyChecking=no -f $0@$2'
 tr ':@' '\n' < credentials | xargs -L3 sh -c 'ssh -o StrictHostKeyChecking=no $0@$2 systemctl restart sshd'
@@ -789,7 +875,7 @@ tr ':@' '\n' < credentials | xargs -L3 sh -c 'scp -o StrictHostKeyChecking=no /e
 
 # Customize hosts before installing ICP
 
-echo -e "${CYAN}Customize hosts before installing ICP ${NC}"
+echo -e "$CC Customize hosts before installing ICP $NC"
 cd /root
 cat <<END > /opt/icp/cluster/hosts
 [master]
@@ -808,11 +894,10 @@ END
 
 # Configure ICP config.yaml file
 
-echo -e "${CYAN}Configure ICP config.yaml file ${NC}"
+echo -e "$CC Configure ICP config.yaml file $NC"
 cd /opt/icp/cluster
 sed -i "s/# cluster_name: mycluster/cluster_name: $CLUSTERNAME/g" /opt/icp/cluster/config.yaml
 sed -i 's/  vulnerability-advisor: disabled/  vulnerability-advisor: enabled/g' /opt/icp/cluster/config.yaml
-sed -i 's/  istio: disabled/  istio: enabled/g' /opt/icp/cluster/config.yaml
 sed -i "s/# default_admin_password:/default_admin_password: $CLUSTERPASS/g" /opt/icp/cluster/config.yaml
 sed -i 's/# install_docker: true/install_docker: true/g' /opt/icp/cluster/config.yaml
 echo "password_rules:" >> /opt/icp/cluster/config.yaml
@@ -821,47 +906,24 @@ echo "- '(.*)'" >> /opt/icp/cluster/config.yaml
 
 # Installation ICP-EE
 
-echo -e "${CYAN}Installation ICP-EE ${NC}"
+echo -e "$CC Installation ICP-EE $NC"
 cd /opt/icp/cluster
-docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.1.2-ee install
-
-
-# Modify connect2icp to support clustername and password
-
-echo -e "${CYAN}Modify connect2icp ${NC}"
-cd /root
-sed -i "s/CLUSTERNAME=mycluster/CLUSTERNAME=$CLUSTERNAME/g" /root/connect2icp.sh
-sed -i "s/PASSWD=admin/PASSWD=$CLUSTERPASS/g" /root/connect2icp.sh
-chmod +x connect2icp.sh
-./connect2icp.sh
+docker run --net=host -t -e LICENSE=accept -v "$(pwd)":/installer/cluster ibmcom/icp-inception-amd64:3.2.0-ee install
 cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
 
+# check HELM
 
-# Installing HELM
-
-echo -e "${CYAN}Installing HELM ${NC}"
+echo -e "$CC Installing HELM $NC"
 cd /root
-curl -O https://storage.googleapis.com/kubernetes-helm/helm-v2.9.1-linux-amd64.tar.gz
-tar -vxhf helm-v2.9.1-linux-amd64.tar.gz
 export PATH=/root/linux-amd64:$PATH
 export HELM_HOME=/root/.helm
 helm init --client-only
-helm version --tls
+helm version --tls --short
 docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
-
-# Source .bashrc
-
-cat <<END >>.bashrc
-./connect2icp.sh
-export HELM_HOME=/root/.helm
-cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
-helm version --tls
-END
-source .bashrc
 
 # Installing Persistent Storage in the Master
 
-echo -e "${CYAN}Installing Persistent Storage in the Master ${NC}"
+echo -e "$CC Installing Persistent Storage in the Master $NC"
 cd /tmp
 mkdir data01
 
@@ -897,13 +959,11 @@ EOF
 
 cd /root
 
-echo -e "${CYAN}End of Installation ${NC}"
-echo -e "${CYAN}MASTERIP is : $MASTERIP ${NC}"
+echo -e "$CC End of Installation $NC"
+echo -e "$CC MASTERIP is : $MASTERIP $NC"
 
 
 # End
-date
-
 
 
 ```

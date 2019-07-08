@@ -20,7 +20,7 @@ We cover 5 steps :
 - Connect with one of the user IDs and test your authorizations
 
 
-> **Prerequisites** : you should be logged on your VM and connected to your ICP master.
+> **Prerequisites** : you should be logged on your master VM and connected to your ICP console.
 
 
 
@@ -33,17 +33,17 @@ We are about to install Open LDAP thru a helm package.
 Before starting this step, we should have a valid helm configuration. 
 Here are some steps you need to flow to check helm : 
 
-`helm version --tls`
+`helm version --tls --short`
 
 Results should be :
 
-```console
-# helm version --tls
-Client: &version.Version{SemVer:"v2.9.1", GitCommit:"20adb27c7c5868466912eebdf6664e7390ebe710", GitTreeState:"clean"}
-Server: &version.Version{SemVer:"v2.9.1+icp", GitCommit:"843201eceab24e7102ebb87cb00d82bc973d84a7", GitTreeState:"clean"}
+```bash
+# helm version --tls --short
+Client: v2.12.3+geecf22f
+Server: v2.12.3+icp+g34e12ad
 ```
 
-**If you didn't get this valid answer, then go to the installation lab.**
+**If you didn't get this valid answer, then use `cloudctl login`.**
 
 Another important prerequisite is Git.
 
@@ -51,7 +51,7 @@ Another important prerequisite is Git.
 
 Results (as an example):
 
-```console
+```bash
 ...
 Installed:
   git.x86_64 0:1.8.3.1-20.el7                                                                                                                   
@@ -73,7 +73,7 @@ git clone https://github.com/ibm-cloud-architecture/icp-openldap.git icp-openlda
 
 Results:
 
-```console
+```bash
 # git clone https://github.com/ibm-cloud-architecture/icp-openldap.git icp-openldap
 Cloning into 'icp-openldap'...
 remote: Enumerating objects: 21, done.
@@ -92,28 +92,26 @@ Package the helm chart using the helm cli:
 `helm package icp-openldap`
 
 Results:
-```console 
+```bash
 # helm package icp-openldap
 Successfully packaged chart and saved it to: /root/icp-openldap-0.1.5.tgz
 ```
 
 If you have not, log in to your cluster from the IBM Cloud Private CLI and log in to the Docker private image registry. 
 
-`docker login <clustername>.icp:8500 -u admin -p admin1!`
+`docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS`
 
 Results:
 
-```console
-# docker login <clustername>.icp:8500 -u admin -p admin1!
+```bash
+# docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
 WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
 Login Succeeded
 ```
-
-Then login with the cloudctl command:
-
-`cloudctl login -a https://<clustername>.icp:8443 --skip-ssl-validation`
-
-> Use the admin/admin1! credentials and choose **2** for **default**.
 
 Populate the Helm chart in the IBM Cloud Private catalog :
 
@@ -122,13 +120,12 @@ cloudctl catalog load-chart --archive /root/icp-openldap-0.1.5.tgz
 ```
 
 Results:
-```console 
-# cloudctl catalog load-chart --archive /root/icp-openldap-0.1.5.tgz
-Loading helm chart
-Loaded helm chart
+```bash
+# cloudctl catalog load-chart --archive /root/icp-openldap-0.1.5.tgz 
+Loading Helm chart
+Loaded Helm chart
 
-Synch charts
-Synch started
+Synch charts on repo: local-charts
 OK
 ```
 
@@ -140,7 +137,7 @@ By default this feature is **active** and we need to authorize the images that w
 
 A new cluster image policy can be created with the necessary image repositories by using the following command (copy and paste all the lines):
 
-```
+```bash
 kubectl create -f - <<EOF
 apiVersion: securityenforcement.admission.cloud.ibm.com/v1beta1
 kind: ClusterImagePolicy
@@ -154,7 +151,7 @@ EOF
 
 Result:
 
-```
+```bash
 clusterimagepolicy.securityenforcement.admission.cloud.ibm.com/ldap-cluster-image-policy created
 ```
 
@@ -167,9 +164,9 @@ Type **open** in the search zone to retrieve **icp-openldap** package.
 ![image-20190322220755064](images/image-20190322220755064-3288875.png)
 
 Click on **icp-openldap** and **Configure** to see the parameters.
-Add a release name **openldap** and the **default** namespace. 
+Add a release name **openldap**, on **local-cluster** and the **default** namespace. 
 
-![image-20190322221141872](images/image-20190322221141872-3289101.png)
+![image-20190708094449032](images/image-20190708094449032-2571889.png)
 
 Click **Install**. Then Click **View Helm Releases**.
 
@@ -181,7 +178,7 @@ Take a note of the **ClusterIP** for a future use:
 
 ![ldapclusterip](./images/ldapclusterip.png)
 
-To get access to the Open LDAP portal, use the following URL (where the i-address is the VM ip address):
+To get access to the Open LDAP portal, use the following URL (where the ip address is the master VM ip address):
 
 `http://<masterip>:31080`
 
@@ -274,9 +271,11 @@ From the ICP console, Navigate to **Menu > Manage >  Identity and Access > Teams
 ![ldapteams](./images/ldapteams.png)
 
 Enter a team name : **myteam**
-Click on the **users** button. Enter **user** in the search field. Check all 4 users to be part of the team. Then choose some **roles** as shown below.
+Click on the **users** button. Enter **user** in the search field. **Press enter**.
 
-![ldapteams](./images/ldapteams2.png)
+Check all 4 users to be part of the team. Then choose some **roles** as shown below.
+
+![image-20190708095926808](images/image-20190708095926808-2572766.png)
 
 Click **Create**
 
@@ -306,7 +305,7 @@ Check the Image Container menu and you should receive:
 
 If you are interested in the different roles, look at the following link:
 
-https://www.ibm.com/support/knowledgecenter/en/SSBS6K_3.1.2/user_management/assign_role.html
+https://www.ibm.com/support/knowledgecenter/en/SSBS6K_3.2.0/user_management/assign_role.html
 
 # Congratulations 
 

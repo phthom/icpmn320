@@ -177,21 +177,13 @@ clusterimagepolicy.securityenforcement.admission.cloud.ibm.com/microclimate-clus
 Use the following command:
 
 ```
-kubectl create secret docker-registry microclimate-registry-secret \
-  --docker-server=$CLUSTERNAME.icp:8500 \
-  --docker-username=admin \
-  --docker-password=admin1! \
-  --docker-email=null
+kubectl create secret docker-registry microclimate-registry-secret --docker-server=$CLUSTERNAME.icp:8500 --docker-username=admin --docker-password=$CLUSTERPASS --docker-email=null
 ```
 
 Results:
 
 ```console
-# kubectl create secret docker-registry microclimate-registry-secret \
->   --docker-server=mycluster.icp:8500 \
->   --docker-username=admin \
->   --docker-password=admin1! \
->   --docker-email=null
+# kubectl create secret docker-registry microclimate-registry-secret --docker-server=mycluster.icp:8500 --docker-username=admin --docker-password=$CLUSTERPASS --docker-email=null
 secret "microclimate-registry-secret" created
 ```
 
@@ -219,7 +211,7 @@ secret "microclimate-helm-secret" created
 Use the following command:
 
 ```
-kubectl create secret docker-registry microclimate-pipeline-secret --docker-server=$CLUSTERNAME.icp:8500 --docker-username=admin --docker-password=admin1! --docker-email=null --namespace=microclimate-pipeline-deployments
+kubectl create secret docker-registry microclimate-pipeline-secret --docker-server=$CLUSTERNAME.icp:8500 --docker-username=admin --docker-password=$CLUSTERPASS --docker-email=null --namespace=microclimate-pipeline-deployments
 ```
 
 And then patch the serviceaccount :
@@ -253,7 +245,7 @@ helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/rep
 Then install Microclimate with that command:
 
 ```
-helm install --name microclimate --namespace microclimate --set global.rbac.serviceAccountName=micro-sa,persistence.storageClassName=nfs-client,jenkins.Persistence.StorageClass=nfs-client,jenkins.rbac.serviceAccountName=pipeline-sa,global.ingressDomain=${M1IP}.nip.io,jenkins.Pipeline.Registry.Url=$PREFIX.icp:8500 ibm-charts/ibm-microclimate --tls
+helm install --name microclimate --namespace microclimate --set global.rbac.serviceAccountName=micro-sa,persistence.storageClassName=nfs-client,jenkins.Persistence.StorageClass=nfs-client,jenkins.rbac.serviceAccountName=pipeline-sa,global.ingressDomain=${M1IP}.nip.io,jenkins.Pipeline.Registry.Url=$PREFIX.icp:8500 ibm-charts/ibm-microclimate --version=1.13.0 --tls
 ```
 Results:
 

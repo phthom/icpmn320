@@ -8,7 +8,7 @@
 
 
 
-Compatible with ICP version 3.1.2
+Compatible with ICP version 3.2
 
 ![ICP Logo](./images/logoicp.png)
 

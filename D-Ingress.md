@@ -6,17 +6,26 @@
 
 
 
-# Using the Ingress Control as a Router in ICP
+# Using the Ingress Controller in ICP
+
+Purpose : Define some simple rules in the Ingress Controller to set up and demonstrate a route to application in IBM Cloud Private.
 
 
 
-### Creating a simple Node.js Express application
+#Task 1: Creating a simple Node.js application
 
-To demonstrate the power of **Ingress** controllers, I want to create a basic Express application written using Node.js that is easy to write and explain for this article.   In the application, I have defined two Express routes that return a message back to the user with a user provided payload appended to the end.    These two routes will respond based upon the match of either `foo` or `helloworld`.
+To demonstrate the power of **Ingress** controllers, we want to first create a basic Express application written using Node.js  (easy to write and explain for this article).   In the application, we have defined two Express routes that return a message back to the user with a user provided payload appended to the end.    These two routes will respond based upon the match of either `foo` or `helloworld`.
+
+```bash
+cd
+mkdir ingress
+cd ingress
+nano server.js
+```
 
 **server.js**
 
-```
+```javascript
 const express = require('express')
 const app = express()
 
@@ -35,12 +44,15 @@ app.listen(9080, function () {
 
 
 
+As this application has a dependency on Express, I will add this dependency to the package.json of the application.  This will be used later on when packaging the Docker image and deploying to IBM Cloud Private.
 
-As this application has a dependency on Express, I will add this dependency to my package.json of my application.  This will be used later on when packaging my Docker image and deploying to IBM Cloud Private.
+```
+nano package.json
+```
 
 **package.json**
 
-```
+```json
 {
  "name": "nodejs",
  "version": "1.0.0",
@@ -62,15 +74,19 @@ As this application has a dependency on Express, I will add this dependency to m
 
 
 
-### Pushing the application to Docker Hub
+# Task 2: Build and push to the registry
 
-Now that we have created the script and done some local testing, we are now ready to package this and push the image to Docker Hub (or whatever registry you choose to leverage).   To publish the image, we need to define the Dockerfile which we will use to build and publish the artifact.
+Now that we have created the script and done some local testing, we are now ready to package this and push the image to Docker Hub (or whatever registry you choose to leverage).   To publish the image, we need first to define the Dockerfile which we will use to build and publish the artifact.
 
-The Dockerfile I am using is a standard Dockerfile that packages the depedencies and the main entry point into the application named server.js
+The Dockerfile we are using is a standard Dockerfile that packages the depedencies and the main entry point into the application named server.js
+
+```nano Dockerfile
+nano Dockerfile
+```
 
 **Dockerfile**
 
-```
+```bash
 FROM node:latest
 
 # Create app directory
@@ -90,24 +106,27 @@ CMD [ "npm", "start" ]
 
 
 
-To package the container and publish the image, type the following commands:
+To package the container and publish the image, type the following commands (change the clustername and password):
 
+```bash
+docker login <mycluster>.icp:8500 -u admin -p <password>
+docker build --no-cache=true -t <mycluster>.icp:8500/default/node-ingress:v2 .
+docker push <mycluster>.icp:8500/default/node-ingress:v2
 ```
-docker login mycluster.icp:8500 -u admin -p admin
-docker build --no-cache=true -t mycluster.icp:8500/default/node-ingress:v2 .
-docker push mycluster.icp:8500/default/node-ingress:v2
-
-```
 
 
 
-### Deploying application to IBM Cloud Private
+#Task 3: Deploy the application to ICP
 
 We are now at the point where we can deploy the resource to IBM Cloud Private.  Since we want to deploy this as a Kubernetes resource, we need to first define the Deployment yaml file that will not only create the deployment artifact but also will create the service.
 
+```bash
+nano deployment.yaml
+```
+
 **deployment.yaml**
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -136,7 +155,7 @@ spec:
         version: v2
     spec:
       containers:
-      - image: mycluster.icp:8500/default/node-ingress:v2
+      - image: <mycluster>.icp:8500/default/node-ingress:v2
         imagePullPolicy: IfNotPresent
         name: node-app
         ports:
@@ -144,24 +163,25 @@ spec:
 ---
 ```
 
+**Execute** the command:
 
-
-Now that the we have defined the Service and Deployment types for this deployment, we can now run the command `kubectl apply -f deployment.yaml` that will deploy this application to IBM Cloud Private.   Once the pods have listed as running (you can verify using the command `kubectl get pods` and look for the prefix node-app).   Once the status is running, we are ready for the next step of configuring the Ingress.
-
-```
-# kubectl apply -f ingress.yaml
-ingress.extensions/test-ingress created
+``` bash
+kubectl apply -f deployment.yaml
 ```
 
+Now that the we have defined the Service and Deployment types for this deployment, we can now run the command `kubectl apply -f deployment.yaml` that will deploy this application to IBM Cloud Private.   
+
+Once the pods have listed as running (you can verify using the command `kubectl get pods` and look for the prefix node-app).   Once the status is running, we are ready for the next step of configuring the Ingress.
 
 
-### Defining ingress rules
 
-We are now ready to define our Ingress.  Ingress is a great way to provide a single point of entry for your Kubernetes resources.   Ingresses such as Nginx provide features such as SSL termination, URL rewriting and a host of other features that are found in many proxies in the market today.   In this section,  we will define a set of rules that will route our two Express routes from the Ingress to our application using our ingress.yaml.
+# Task 4: Defining ingress rules
 
-ingress.yaml
+We are now ready to define our Ingress.  Ingress is a great way to provide a single point of entry for your Kubernetes resources.   Ingresses such as Nginx provide features such as SSL termination, URL rewriting and other features that are found in many proxies in the market today.   In this section,  we will define a set of rules that will route our two Express routes from the Ingress to our application using our ingress.yaml.
 
-```
+**ingress.yaml**
+
+```yaml
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -181,14 +201,19 @@ spec:
 ---
 ```
 
+**Execute** the command:
 
+```
+# kubectl apply -f ingress.yaml
+ingress.extensions/test-ingress created
+```
 
-Now that the we have defined the ingress resource, we can now run the command `kubectl apply -f ingress.yaml` which will configure the ingress to route requests to our application.
+This will configure the ingress to route requests to our application.
 
 To verify this is working, locate the proxy node of your deployment and find the ip address for this deployment.   In the example I provided, I set PROXY to the proxy node of my IBM Cloud Private deployment.  Once you have that value, you can curl the various REST APIs as follows…
 
-```
-export PROXY=https://169.51.44.149
+```bash
+export PROXY=https://<ipaddress>
 
 # curl -k $PROXY/helloworld/todd; echo
 Hello World! todd
@@ -200,11 +225,15 @@ Testing foo:  bar
 
 ```
 
-You can also go to your browser and type `https://ipaddress//helloworld/phil`
+
+
+You can also go to your browser and type `https://<ipaddress>//helloworld/phil`
 
 ![image-20181206122129771](images/image-20181206122129771.png)
 
-#### Enabling access logging
+
+
+#Task 5: Enabling access logging
 
 The final step to tie all of the pieces together is to enable **access logging**.  By default, IBM Cloud Private has disabled access logging but provides a simple way to enable it by editing one of the IBM Cloud Private **ConfigMap** resources.
 
@@ -212,7 +241,7 @@ To enable access logging, edit the ConfigMap resource **nginx-ingress-controller
 
 In this resource, change the disable-access-log parameter to **false.**
 
-```
+```yaml
 # Please edit the object below. Lines beginning with a '#' will be ignored,
 # and an empty file will abort the edit. If an error occurs while saving this file will be
 # reopened with the relevant failures.
@@ -238,7 +267,7 @@ Once this is changed, save the file for the change to take effect.
 
 Now that this change has been made, let’s repeat the same CURL commands we did previously.
 
-```
+```html
 curl -k $PROXY/helloworld/todd; echo
 curl -k $PROXY/helloworld/phil; echo
 curl -k $PROXY/foo/bar; echo
@@ -258,22 +287,26 @@ curl -k $PROXY/foo/bar; echo
 
 And now we can view the logs for the pod.   In IBM Cloud Private, the pod name for the Ingress starts with nginx-ingress.   You can list the pods **`kubectl get pods –namespace=kube-system`** to find the list of pods.
 
-`kubectl get pods -n=kube-system | grep nginx`
+``` bash
+kubectl get pods -n=kube-system | grep nginx
+```
 
 Results:
 
-```
+```console
 # kubectl get pods -n=kube-system | grep nginx
 nginx-ingress-controller-smzfw  
 ```
 
 Once I located my pod, I ran the following command:
 
-`kubectl logs nginx-ingress-controller-smzfw  -n=kube-system`
+```bash
+kubectl logs nginx-ingress-controller-smzfw  -n=kube-system
+```
 
 Results:
 
-```
+```console
 # kubectl logs nginx-ingress-controller-smzfw  -n=kube-system
 -------------------------------------------------------------------------------
 NGINX Ingress controller
@@ -291,6 +324,8 @@ I1204 13:57:00.613457       7 nginx.go:250] Starting NGINX Ingress controller
 I1204 13:57:00.622823       7 event.go:218] Event(v1.ObjectReference{Kind:"ConfigMap", Namespace:"kube-system", Name:"nginx-ingress-controller", UID:"64b6d6b6-f7cc-11e8-b645-06a6842645b2", APIVersion:"v1", ResourceVersion:"877", FieldPath:""}): type: 'Normal' reason: 'CREATE' ConfigMap kube-system/nginx-ingress-controller
 
 ```
+
+And then ...
 
 ```
 127.0.0.1 - [127.0.0.1] - - [04/Dec/2018:19:09:56 +0000] "GET /foo/bar HTTP/1.1" 200 17 "-" "curl/7.47.0" 84 0.002 [default-node-app-9080] 10.1.155.63:9080 17 0.000 200 20a11ce132da4abe937a1e4e8063f4c8

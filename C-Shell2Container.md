@@ -6,7 +6,7 @@
 
 
 
-This lab is compatible with ICP version 3.1.2
+This lab is compatible with ICP version 3.2
 
 ### Prerequisites
 

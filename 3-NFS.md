@@ -14,7 +14,7 @@ Network File System (NFS), due to its simplicity and the well-established techni
 
 Kubernetes support the NFS based Persistent Volume (PV). 
 
-This document explains the steps to enable the NFS dynamic volume provisioning in IBM Cloud Private (ICP) 3.1.2, and some simple validation test.
+This document explains the steps to enable the NFS dynamic volume provisioning in IBM Cloud Private (ICP) 3.2, and some simple validation test.
 
 ### 1. Configuring a NFS server
 
@@ -36,7 +36,7 @@ We are going to configure a NFS server in the **Master node** (normally we use s
 
 `chmod 777 /data`
 
-1. Configure the following NFS server file :
+- Configure the following NFS server file :
 
 `nano /etc/exports`
 
@@ -50,7 +50,7 @@ Content of the exports file
 /data remoteip(rw,async,no_root_squash) 
 ```
 
-Where /data is your shared directory and remoteip is the ip address of your kubernetes nodes. You need to add all the ip addresses (and options) for **all workers** in the cluster in a **row**. You can get all your worker ip in the icpinit file.
+Where /data is your shared directory and remoteip is the ip address of your kubernetes nodes. You need to add all the ip addresses (and options) for **all workers** in the cluster in a **row**. You can get all your worker ip in the icpinit or at the end of the .bashrc file.
 
 For example :
 
@@ -82,7 +82,7 @@ Results:
 
 ## 2. Enable Image Security in ICP
 
-Be default ICP 3.1.2 enforce the image security allowing only those images that are defined in a white list to run in the cluster.
+Be default ICP 3.2 enforce the image security allowing only those images that are defined in a white list to run in the cluster.
 
 Execute the following object,
 
