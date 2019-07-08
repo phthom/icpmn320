@@ -5,7 +5,7 @@
 ---
 
 ![microclimate](images/mcmicroclimate.png)
-This lab is compatible with IBM Cloud Private version 3.1.2
+This lab is compatible with IBM Cloud Private version 3.2
 
 ---
 
