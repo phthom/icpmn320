@@ -624,7 +624,7 @@ Now modify your **.bashrc** file so that when you login again, you will be conne
 cd
 cat <<END >>.bashrc
 export HELM_HOME=/root/.helm
-# cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
+cloudctl login -a https://$CLUSTERNAME.icp:8443 --skip-ssl-validation -u admin -p $CLUSTERPASS -n default
 helm version --tls
 docker login $CLUSTERNAME.icp:8500 -u admin -p $CLUSTERPASS
 END
