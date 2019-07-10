@@ -224,7 +224,7 @@ If the **control plane** is deployed successfully, you can then start to deploy 
 If you are using a private registry for the sidecar image, then you need to create a Secret of type docker-registry in the cluster that holds authorization token, and patch it to your application’s ServiceAccount. Use the following 2 commands (replace mycluster.icp with yours):
 
 ```bash 
-kubectl create secret docker-registry private-registry-key --docker-server=$CLUSTERPASS:8500 --docker-username=admin --docker-password=$CLUSTERPASS --docker-email=null
+kubectl create secret docker-registry private-registry-key --docker-server=$CLUSTERNAME.icp:8500 --docker-username=admin --docker-password=$CLUSTERPASS --docker-email=null
 ```
 
 For example:
