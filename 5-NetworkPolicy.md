@@ -85,7 +85,7 @@ You can use the IBM Cloud Private Console to do so:
 
 - Open a  Web browser 
 - Go to `https://<masterip>:8443/`
-- Login as `admin` with the password of `admin1!`
+- Login as `admin` with your provided password
 - Go to **Menu > Manage**
   - Select __Namespaces__ then click **Create namespace**
 
